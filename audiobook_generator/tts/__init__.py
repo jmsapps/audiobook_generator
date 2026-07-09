@@ -14,7 +14,7 @@ def get_backend(
     pause_ms: int = 250,
 ) -> TtsBackend:
     """Factory: build a TTS backend by name."""
-    name = (name or "piper").lower()
+    name = (name or "kokoro").lower()
     if name == "piper":
         from .piper_backend import PiperBackend
 
@@ -27,4 +27,12 @@ def get_backend(
         return Pyttsx3Backend(
             voice=voice, language=language, length_scale=length_scale, pause_ms=pause_ms
         )
-    raise ValueError(f"Unknown TTS backend: {name!r} (expected 'piper' or 'pyttsx3')")
+    if name == "kokoro":
+        from .kokoro_backend import KokoroBackend
+
+        return KokoroBackend(
+            voice=voice, language=language, length_scale=length_scale, pause_ms=pause_ms
+        )
+    raise ValueError(
+        f"Unknown TTS backend: {name!r} (expected 'piper', 'pyttsx3', or 'kokoro')"
+    )

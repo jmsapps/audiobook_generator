@@ -6,6 +6,7 @@ import pytest
 
 from audiobook_generator.cli import _parse_pages, main
 from audiobook_generator.tts import get_backend
+from audiobook_generator.tts.kokoro_backend import KokoroBackend
 from audiobook_generator.tts.piper_backend import PiperBackend
 from audiobook_generator.tts.pyttsx3_backend import Pyttsx3Backend
 from audiobook_generator.voices import _voice_url_path, default_voice
@@ -65,6 +66,7 @@ def test_cli_rejects_invalid_pacing(tmp_path):
 def test_get_backend_factory():
     assert isinstance(get_backend("piper", voice=None, language="en"), PiperBackend)
     assert isinstance(get_backend("pyttsx3", voice=None, language="en"), Pyttsx3Backend)
+    assert isinstance(get_backend("kokoro", voice=None, language="en"), KokoroBackend)
     with pytest.raises(ValueError):
         get_backend("bogus", voice=None, language="en")
 
@@ -74,3 +76,10 @@ def test_piper_backend_voice_id_uses_language_default():
     assert b.voice_id() == "piper:pt_BR-faber-medium"
     b2 = get_backend("piper", voice="en_US-ryan-high", language="en")
     assert b2.voice_id() == "piper:en_US-ryan-high"
+
+
+def test_kokoro_backend_voice_id_uses_language_default():
+    b = get_backend("kokoro", voice=None, language="en")
+    assert b.voice_id() == "kokoro:a:af_heart"
+    b2 = get_backend("kokoro", voice="pf_dora", language="pt")
+    assert b2.voice_id() == "kokoro:p:pf_dora"

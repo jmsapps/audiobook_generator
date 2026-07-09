@@ -5,6 +5,7 @@
 # Handles the things `uv sync` cannot install itself:
 #   * uv            (the package manager / runner)
 #   * ffmpeg/ffprobe (system binaries used for audio encoding & chapters)
+#   * espeak-ng     (phonemizer used by the default Kokoro backend)
 # Then runs `uv sync`, which installs Python 3.13 and all PyPI dependencies into .venv.
 #
 # Supported: macOS (Homebrew) and Linux (apt / dnf / yum / pacman / zypper). Unix only.
@@ -69,36 +70,36 @@ ensure_uv() {
     info "uv installed ($(uv --version))"
 }
 
-# ---- ensure ffmpeg --------------------------------------------------------
-install_ffmpeg_macos() {
+# ---- ensure system packages ----------------------------------------------
+install_brew_package() {
     if ! have brew; then
-        err "Homebrew is required to auto-install ffmpeg on macOS."
-        err "Install it from https://brew.sh then re-run, or install ffmpeg yourself."
+        err "Homebrew is required to auto-install $1 on macOS."
+        err "Install it from https://brew.sh then re-run, or install $1 yourself."
         exit 1
     fi
-    brew install ffmpeg
+    brew install "$1"
 }
 
-install_ffmpeg_linux() {
+install_linux_package() {
     if have apt-get; then
-        $SUDO apt-get update -y && $SUDO apt-get install -y ffmpeg
+        $SUDO apt-get update -y && $SUDO apt-get install -y "$1"
     elif have dnf; then
-        $SUDO dnf install -y ffmpeg || {
-            warn "ffmpeg may need RPM Fusion: https://rpmfusion.org/Configuration"
+        $SUDO dnf install -y "$1" || {
+            [ "$1" = "ffmpeg" ] && warn "ffmpeg may need RPM Fusion: https://rpmfusion.org/Configuration"
             exit 1
         }
     elif have yum; then
-        $SUDO yum install -y ffmpeg || {
-            warn "ffmpeg may need RPM Fusion: https://rpmfusion.org/Configuration"
+        $SUDO yum install -y "$1" || {
+            [ "$1" = "ffmpeg" ] && warn "ffmpeg may need RPM Fusion: https://rpmfusion.org/Configuration"
             exit 1
         }
     elif have pacman; then
-        $SUDO pacman -Sy --noconfirm ffmpeg
+        $SUDO pacman -Sy --noconfirm "$1"
     elif have zypper; then
-        $SUDO zypper install -y ffmpeg
+        $SUDO zypper install -y "$1"
     else
         err "No supported package manager found (apt/dnf/yum/pacman/zypper)."
-        err "Install ffmpeg manually and re-run."
+        err "Install $1 manually and re-run."
         exit 1
     fi
 }
@@ -110,9 +111,9 @@ ensure_ffmpeg() {
     fi
     info "Installing ffmpeg..."
     if [ "$PLATFORM" = "macos" ]; then
-        install_ffmpeg_macos
+        install_brew_package ffmpeg
     else
-        install_ffmpeg_linux
+        install_linux_package ffmpeg
     fi
     if ! have ffmpeg || ! have ffprobe; then
         err "ffmpeg/ffprobe still not found after install."
@@ -121,9 +122,28 @@ ensure_ffmpeg() {
     info "ffmpeg installed ($(ffmpeg -version | head -1))"
 }
 
+ensure_espeak_ng() {
+    if have espeak-ng; then
+        info "espeak-ng already installed ($(espeak-ng --version | head -1))"
+        return
+    fi
+    info "Installing espeak-ng..."
+    if [ "$PLATFORM" = "macos" ]; then
+        install_brew_package espeak-ng
+    else
+        install_linux_package espeak-ng
+    fi
+    if ! have espeak-ng; then
+        err "espeak-ng still not found after install."
+        exit 1
+    fi
+    info "espeak-ng installed ($(espeak-ng --version | head -1))"
+}
+
 # ---- run ------------------------------------------------------------------
 ensure_uv
 ensure_ffmpeg
+ensure_espeak_ng
 
 info "Syncing project (installs Python 3.13 + dependencies into .venv)..."
 uv sync

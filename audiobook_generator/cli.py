@@ -36,8 +36,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--file", required=True, help="Path to the source PDF (e.g. documents/sherlock.pdf)")
     p.add_argument("-l", "--language", default="en", help="Language code (default: en; sets default voice)")
-    p.add_argument("--voice", default=None, help="Override TTS voice id (e.g. pt_BR-faber-medium)")
-    p.add_argument("--backend", default="piper", choices=["piper", "pyttsx3"], help="TTS backend")
+    p.add_argument("--voice", default=None, help="Override TTS voice id (e.g. af_heart)")
+    p.add_argument(
+        "--backend",
+        default="kokoro",
+        choices=["piper", "pyttsx3", "kokoro"],
+        help="TTS backend",
+    )
     p.add_argument("--pages", default=None, help="Page range, e.g. '1-10' or '3,5,9' (default: all)")
     p.add_argument("--format", dest="fmt", default="mp3", choices=["mp3", "wav"], help="Page audio format")
     p.add_argument(

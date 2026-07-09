@@ -17,21 +17,25 @@ documents/<book>.pdf
 - macOS or Linux
 - [`uv`](https://docs.astral.sh/uv/) (manages Python 3.13 + dependencies)
 - `ffmpeg`/`ffprobe` on your `PATH`
+- `espeak-ng` on your `PATH` for the default Kokoro backend
 
 ## Setup
 
-The bootstrap script detects your OS and installs the external prerequisites (`uv` and `ffmpeg`),
-then syncs the project:
+The bootstrap script detects your OS and installs the external prerequisites (`uv`, `ffmpeg`, and
+`espeak-ng`), then syncs the project:
 
 ```bash
 ./bootstrap.sh
 ```
 
-Or, if you already have `uv` and `ffmpeg`:
+Or, if you already have `uv`, `ffmpeg`, and `espeak-ng`:
 
 ```bash
 uv sync          # creates .venv and installs everything
 ```
+
+Kokoro downloads its model weights and selected voice file the first time you use it. After that
+one-time setup, synthesis uses the cached files locally.
 
 ## Usage
 
@@ -51,9 +55,9 @@ uv run python -m audiobook_generator --file documents/book.pdf --pages 1-20 --co
 | Flag | Default | Meaning |
 |------|---------|---------|
 | `--file` | (required) | PDF under `documents/` (or any path) |
-| `-l, --language` | `en` | Sets the default voice (e.g. `pt` → `pt_BR-faber-medium`) |
-| `--voice` | per-language | Override the Piper voice id, e.g. `pt_BR-faber-medium` |
-| `--backend` | `piper` | `piper` (neural, local) or `pyttsx3` (OS voices) |
+| `-l, --language` | `en` | Sets the default voice (e.g. `en` → `af_heart`, `pt` → `pf_dora`) |
+| `--voice` | per-language | Override the backend voice id, e.g. `pt_BR-faber-medium` or `af_heart` |
+| `--backend` | `kokoro` | `kokoro` (higher quality, local), `piper` (fast neural, local), or `pyttsx3` (OS voices) |
 | `--pages` | all | `1-10` or `3,5,9` |
 | `--format` | `mp3` | `mp3` or `wav` |
 | `--length-scale` | `1.25` | Speech pacing; higher is slower |
