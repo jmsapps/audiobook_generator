@@ -3,21 +3,26 @@
 from __future__ import annotations
 
 import types
+from dataclasses import replace
+from pathlib import Path
+from typing import Any
 
 import pytest
 
 from audiobook_generator.pipeline import Config
 
 
-def make_config(tmp_path, **overrides) -> Config:
+def make_config(tmp_path: Path, **overrides: Any) -> Config:
     """Build a Config rooted at tmp_path; override any field via kwargs."""
-    defaults = dict(
+    cfg = Config(
         pdf_path=tmp_path / "book.pdf",
         book="book",
         language="en",
         backend_name="piper",
         voice=None,
         fmt="mp3",
+        length_scale=1.25,
+        pause_ms=250,
         pages=[1, 2, 3],
         transcribe_only=False,
         from_transcripts=False,
@@ -26,8 +31,7 @@ def make_config(tmp_path, **overrides) -> Config:
         transcriptions_dir=tmp_path / "transcriptions",
         audiobooks_dir=tmp_path / "audiobooks",
     )
-    defaults.update(overrides)
-    return Config(**defaults)
+    return replace(cfg, **overrides)
 
 
 class FakeBackend:

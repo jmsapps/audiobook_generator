@@ -40,6 +40,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--backend", default="piper", choices=["piper", "pyttsx3"], help="TTS backend")
     p.add_argument("--pages", default=None, help="Page range, e.g. '1-10' or '3,5,9' (default: all)")
     p.add_argument("--format", dest="fmt", default="mp3", choices=["mp3", "wav"], help="Page audio format")
+    p.add_argument(
+        "--length-scale",
+        type=float,
+        default=1.25,
+        help="Speech pacing for synthesis; higher is slower (default: 1.25)",
+    )
+    p.add_argument(
+        "--pause-ms",
+        type=int,
+        default=250,
+        help="Silence to insert between narration chunks, in milliseconds (default: 250)",
+    )
     p.add_argument("--transcribe-only", action="store_true", help="Stop after extracting text")
     p.add_argument("--from-transcripts", action="store_true", help="Skip extraction; build audio from existing .txt")
     p.add_argument("--combine", action="store_true", help="Build a single .m4b with per-page chapters")
@@ -65,6 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     if pdf_path.suffix.lower() != ".pdf":
         print(f"error: not a .pdf file: {pdf_path}", file=sys.stderr)
         return 2
+    if args.length_scale <= 0:
+        print("error: --length-scale must be greater than 0", file=sys.stderr)
+        return 2
+    if args.pause_ms < 0:
+        print("error: --pause-ms must be greater than or equal to 0", file=sys.stderr)
+        return 2
 
     book = pdf_path.stem
 
@@ -81,6 +99,8 @@ def main(argv: list[str] | None = None) -> int:
         backend_name=args.backend,
         voice=args.voice,
         fmt=args.fmt,
+        length_scale=args.length_scale,
+        pause_ms=args.pause_ms,
         pages=pages,
         transcribe_only=args.transcribe_only,
         from_transcripts=args.from_transcripts,

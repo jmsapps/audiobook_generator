@@ -56,6 +56,8 @@ uv run python -m audiobook_generator --file documents/book.pdf --pages 1-20 --co
 | `--backend` | `piper` | `piper` (neural, local) or `pyttsx3` (OS voices) |
 | `--pages` | all | `1-10` or `3,5,9` |
 | `--format` | `mp3` | `mp3` or `wav` |
+| `--length-scale` | `1.25` | Speech pacing; higher is slower |
+| `--pause-ms` | `250` | Silence between narration chunks, in milliseconds |
 | `--transcribe-only` | off | Stop after extracting text |
 | `--from-transcripts` | off | Skip extraction; (re)build audio from existing `.txt` |
 | `--combine` | off | Build a single `.m4b` with per-page chapters |

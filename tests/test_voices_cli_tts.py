@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from audiobook_generator.cli import _parse_pages
+from audiobook_generator.cli import _parse_pages, main
 from audiobook_generator.tts import get_backend
 from audiobook_generator.tts.piper_backend import PiperBackend
 from audiobook_generator.tts.pyttsx3_backend import Pyttsx3Backend
@@ -53,6 +53,13 @@ def test_default_voice_unknown_language_raises():
 )
 def test_parse_pages(spec, expected):
     assert _parse_pages(spec) == expected
+
+
+def test_cli_rejects_invalid_pacing(tmp_path):
+    pdf = tmp_path / "book.pdf"
+    pdf.write_bytes(b"%PDF")
+    assert main(["--file", str(pdf), "--length-scale", "0"]) == 2
+    assert main(["--file", str(pdf), "--pause-ms", "-1"]) == 2
 
 
 def test_get_backend_factory():

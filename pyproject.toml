@@ -22,7 +22,11 @@ dev = ["pytest>=8"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-filterwarnings = ["ignore::SyntaxWarning"]
+filterwarnings = [
+    "ignore::SyntaxWarning",
+    "ignore:builtin type SwigPy.* has no __module__ attribute:DeprecationWarning",
+    "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
+]
 
 [build-system]
 requires = ["hatchling"]

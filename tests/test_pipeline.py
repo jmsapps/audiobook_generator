@@ -49,6 +49,15 @@ def test_changing_voice_invalidates_audio(patched, tmp_path):
     assert len(patched.Backend.calls) == 2
 
 
+def test_changing_pacing_invalidates_audio(patched, tmp_path):
+    pipeline.run(make_config(tmp_path, pages=[1]))
+    assert len(patched.Backend.calls) == 1
+    pipeline.run(make_config(tmp_path, pages=[1], length_scale=1.35))
+    assert len(patched.Backend.calls) == 2
+    pipeline.run(make_config(tmp_path, pages=[1], length_scale=1.35, pause_ms=300))
+    assert len(patched.Backend.calls) == 3
+
+
 def test_transcribe_only_writes_no_audio(patched, tmp_path):
     cfg = make_config(tmp_path, pages=[1, 2], transcribe_only=True)
     rc = pipeline.run(cfg)

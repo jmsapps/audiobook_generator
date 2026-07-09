@@ -35,6 +35,8 @@ class Config:
     backend_name: str
     voice: str | None
     fmt: str
+    length_scale: float
+    pause_ms: int
     pages: list[int]
     transcribe_only: bool
     from_transcripts: bool
@@ -107,7 +109,13 @@ def _process_page(cfg: Config, manifest: Manifest, n: int, box: dict, cur_params
         return
 
     if box["backend"] is None:
-        box["backend"] = get_backend(cfg.backend_name, voice=cfg.voice, language=cfg.language)
+        box["backend"] = get_backend(
+            cfg.backend_name,
+            voice=cfg.voice,
+            language=cfg.language,
+            length_scale=cfg.length_scale,
+            pause_ms=cfg.pause_ms,
+        )
     backend = box["backend"]
 
     segments = chunking.split_segments(page_text, language=cfg.language)
@@ -133,7 +141,11 @@ def run(cfg: Config) -> int:
 
     box = {"backend": None}  # built lazily; --transcribe-only needs no TTS model
     cur_params = params_hash(
-        backend=cfg.backend_name, voice=cfg.voice or f"default:{cfg.language}", fmt=cfg.fmt
+        backend=cfg.backend_name,
+        voice=cfg.voice or f"default:{cfg.language}",
+        fmt=cfg.fmt,
+        length_scale=cfg.length_scale,
+        pause_ms=cfg.pause_ms,
     )
 
     print(f"Book '{cfg.book}': {manifest.total_pages} pages total, "

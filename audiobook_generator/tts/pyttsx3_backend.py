@@ -19,9 +19,13 @@ from .base import TtsBackend
 class Pyttsx3Backend(TtsBackend):
     name = "pyttsx3"
 
-    def __init__(self, *, voice: str | None, language: str) -> None:
+    def __init__(
+        self, *, voice: str | None, language: str, length_scale: float, pause_ms: int
+    ) -> None:
         self._voice = voice
         self._language = language
+        self._length_scale = length_scale
+        self._pause_ms = pause_ms
 
     def voice_id(self) -> str:
         return f"pyttsx3:{self._voice or self._language or 'default'}"
@@ -32,10 +36,15 @@ class Pyttsx3Backend(TtsBackend):
         engine = pyttsx3.init()
         if self._voice:
             engine.setProperty("voice", self._voice)
+        if self._length_scale != 1.0:
+            rate = engine.getProperty("rate")
+            if isinstance(rate, int | float):
+                engine.setProperty("rate", max(1, int(rate / self._length_scale)))
         return engine
 
     def synthesize(self, chunks: list[str], out_wav: Path) -> None:
-        text = "\n".join(c.strip() for c in chunks if c.strip())
+        pause = "\n" if self._pause_ms <= 0 else "\n" + (" " * max(1, self._pause_ms // 100))
+        text = pause.join(c.strip() for c in chunks if c.strip())
         if not text:
             text = " "
 
